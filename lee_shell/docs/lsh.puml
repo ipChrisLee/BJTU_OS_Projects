@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+node "lsh"{
+	[EnvVar]
+	[UI]
+	[Parser]
+	[UI] -> [Parser] : Give Commands.
+	[BuiltInCmd]
+	[Runner]
+	[Parser] -> [Runner] : Pass Parsed Commands.
+	[Runner] -> [BuiltInCmd] : Run Built-In Cmd.
+}
+node "User"{
+	User --> [UI] : Input Command.
+	[UI] --> User : Print Result and information.
+}
+node "OS" {
+	folder Bin
+	[Runner] -> Bin : Find in Bin.
+}
+
+
+
+
+
+
+@enduml
