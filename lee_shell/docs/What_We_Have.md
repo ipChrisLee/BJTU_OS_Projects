@@ -37,6 +37,8 @@ Our lee_shell will:
   * `export`: To keep environment variables.
   
   * `echo`
+
+  * `pwd`
   
 * Run command from executable files.
 
