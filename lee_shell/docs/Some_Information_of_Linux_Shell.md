@@ -15,7 +15,7 @@ List some website that may help building this project.
 
   * [syscall](https://docs.rs/syscalls/0.6.6/syscalls/)
 
-    It is not recommended to use this library, since the version is low, the download volume is low and it has not been updated for three years, said ZX.
+    It is not recommended to use this library, since the version is low, the download volume is low, and it has not been updated for three years, said ZX.
 
 * Some usefule tools:
 
@@ -63,7 +63,7 @@ We will list some important builtin commands that we may plan to have:
 
      * `jobs`: List the jobs that you are running in the background and in the foreground.
 
-       Notice: To run job on background, you can add `&` to command. i.e. `sleep 1000 &` and `vivado &`.
+       Notice: To run job on background, you can add `&` to command. e.g. `sleep 1000 &` and `vivado &`.
 
        To know more about some other information of background/foreground process, see [this webpage](https://www.geeksforgeeks.org/process-control-commands-unixlinux/).
 
@@ -96,7 +96,7 @@ We will list some important builtin commands that we may plan to have:
    * Some other interesting commands:
 
      * `times`: Calculate time consumption.
-     * `history`: Show histroy of commands.
+     * `history`: Show history of commands.
      * `trap`: See [Bash trap command](https://linuxhint.com/bash_trap_command/).
      * `type`: Show type of command. (`type` can be used to figure out what is builtin command.)
 
@@ -134,7 +134,7 @@ About why pipe so imporant, see [this video](https://youtu.be/tc4ROCJYbm0), from
 
 You can see introduction of `pipe` in [wikipedia](https://en.wikipedia.org/wiki/Pipeline_(Unix)).
 
-It is worth highlighting that every commands is in progress at the same time.
+It is worth highlighting that every command is in progress at the same time.
 
  
 
