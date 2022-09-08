@@ -51,8 +51,6 @@ We will list some important builtin commands that we may plan to have:
 
    * `exec`: This just finish shell process to doing what is passed to `exec`.
 
-     `exec` with builtin will just finish 
-
    * `.`: Run executable file. (Yes, this is a builtin.)
 
    * `exit`: Exit shell with specified status code.
