@@ -1,4 +1,29 @@
-# Information of Linux
+# Some Reference Link
+
+List some website that may help building this project.
+
+* Some posix shell implemented with Rust:
+
+  * [cicada, an old-school bash-like Unix shell written in Rust.](https://github.com/mitnk/cicada)
+  * [nsh, a command-line shell like fish, but POSIX compatible.](https://github.com/nuta/nsh)
+
+* Some useful crates:
+
+  * [nix, which provides friendly bindings to various *nix platform APIs (Linux, Darwin, ...).](https://docs.rs/crate/nix/0.25.0)
+
+  * [crossterm, a pure-rust, terminal manipulation library that makes it possible to write cross-platform text-based interfaces.](https://crates.io/crates/crossterm)
+
+  * [syscall](https://docs.rs/syscalls/0.6.6/syscalls/)
+
+    It is not recommended to use this library, since the version is low, the download volume is low and it has not been updated for three years, said ZX.
+
+* Some usefule tools:
+
+  * [pest, the elegant parser.](https://pest.rs)
+
+
+
+# Information of Shell
 
 ## About Builtin Commands
 
@@ -79,7 +104,43 @@ We will list some important builtin commands that we may plan to have:
 
    * `echo`: Just print.
 
-TODO: `&&`, `||`, `&`, `|`, `{cmd1;cmd2;}`
+
+
+## About Some Other Feature of Shell
+
+### Run in Background
+
+Use `&` at the end of command, you can make command run in background. Like:
+
+```shell
+tree | grep "a" > /dev/null &
+```
+
+In my machine, this output:
+
+```
+[1] 11901 11902
+```
+
+Here `[1]` means the job number, and you can see this process in what `jobs` outputs, and you can kill this job by `kill %1`, as memtioned when introducing shell builtin.
+
+`11901` and `11902` are process id. You can kill two process by these id like `kill 11901` and `kill 11902`.
+
+
+
+### Pipe
+
+About why pipe so imporant, see [this video](https://youtu.be/tc4ROCJYbm0), from 6 minutes.
+
+You can see introduction of `pipe` in [wikipedia](https://en.wikipedia.org/wiki/Pipeline_(Unix)).
+
+It is worth highlighting that every commands is in progress at the same time.
+
+ 
+
+### Logical Operator
+
+Like `&&`, `||`. Just like logical operator in C.
 
 
 
