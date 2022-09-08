@@ -53,8 +53,6 @@ We will list some important builtin commands that we may plan to have:
 
    * `.`: Run executable file. (Yes, this is a builtin.)
 
-   * `exit`: Exit shell with specified status code.
-
    * `source`: Read and execute commands on a file.
 
    * For sub job and kill job/process:
@@ -75,7 +73,11 @@ We will list some important builtin commands that we may plan to have:
 
      And, the `pushd` builtin adds directories to the stack as it changes the current directory, and the `popd` builtin removes specified directories from the stack and changes the current directory to the directory removed. The `dirs` builtin displays the contents of the directory stack. The current directory is always the "top" of the directory stack.
 
-   * `wait`: Wait specified process finished, and return its status code.
+   * Some process management builtin commands:
+
+     * `wait`: Wait specified process finished, and return its status code.
+     * `exit`: Exit shell with specified status code.
+     * `kill` and `jobs` memtioned before.
 
    * Some commands for alias, env variable, 
 
