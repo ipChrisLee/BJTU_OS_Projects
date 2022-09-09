@@ -20,6 +20,8 @@ Our lee_shell will:
 
   This maybe difficult to implement, but we should have it to run outer command like `sleep` (by run `which sleep`, you can know that the executable file of `sleep` is `/bin/sleep`).
 
+  `~` will be supported.
+
 * Support these builtin commands:
   
   * `cd`
