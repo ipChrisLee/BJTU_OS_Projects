@@ -1,8 +1,8 @@
 # Before all
 
-We will replace `$` variables first.
+We will replace `$` variables first.(`\$HOME` WILL be replaced!)
 
-Like `~/Main`, will be expanded to `/Users/lee/Main` in my PC.
+Like `$HOME/Main`, will be expanded to `/Users/lee/Main` in my PC.
 
 
 
