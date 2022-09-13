@@ -1,42 +1,64 @@
-FILE_NAME = _{
-	(ASCII_ALPHANUMERIC | "_" | "-") ~
-	(ASCII_ALPHANUMERIC | "_" | "-" | ".")*
+WHITESPACE = _{
+    " " | "\t" | "\r"
+    // A trailing backslash at the end of a line.
+    | "\\\n"
 }
-PATH_CHANGE = _{
-	"./" | "../" | FILE_NAME ~ "/"
+COMMENT = _{ "#" ~ (!("\n") ~ ANY)* }
+STR_INNER = @{
+    (
+        !("\"" | "\\" | "`" | "$") ~ ANY
+        | "\\" ~ ANY
+        | WHITESPACE
+    )+
 }
-ABS_PATH_TO_FILE = _{
-	"/" ~ PATH_CHANGE* ~ FILE_NAME
+D_QUOTED_STR = @{
+	"\"" ~ STR_INNER ~ "\""
 }
-REL_PATH_TO_FILE = _{
-	PATH_CHANGE* ~ FILE_NAME
+NO_SPACE_STR = @{
+	("." | "-" | "_" | ASCII_ALPHANUMERIC)+
 }
-BUILTIN = {
+
+FILE_NAME_NO_PATH = @{
+	("-" | "_" | ASCII_ALPHANUMERIC) ~ ("." | "-" | "_" | ASCII_ALPHANUMERIC)+
+}
+
+FILE_NAME_WITH_PATH = @{
+	("/" | "./" | "../") ~ (FILE_NAME_NO_PATH ~ "/")* ~ FILE_NAME_NO_PATH
+}
+
+FILE_NAME = {
+	!("/" | "./" | "../") ~ FILE_NAME_NO_PATH |
+	FILE_NAME_WITH_PATH
+}
+
+SCRIPT = _{ SOI ~ PIPE_CMD? ~ EOI }
+WS = _{ (WHITESPACE | COMMENT)+ }
+PIPE_CMD = { CMD ~ ("|" ~ CMD)* }
+REDIRECT_IO = {
+	&"<" ~ CHANGE_INPUT ~ (&">" ~ CHANGE_OUTPUT)? |
+	&">" ~ CHANGE_OUTPUT ~ (&"<" ~ CHANGE_INPUT)?
+}
+CHANGE_INPUT = {
+    "<" ~ FILE_NAME
+}
+CHANGE_OUTPUT = {
+	">" ~ FILE_NAME
+}
+CMD = { CMD_NAME ~ ARG* ~ REDIRECT_IO? }
+CMD_NAME = _{
+	BUILTIN_CMD |
+	OUTER_CMD |
+	PERF_EXE
+}
+BUILTIN_CMD = {
 	"cd" | "exit" | "exec" | "kill" | "export" | "echo" | "pwd"
 }
 OUTER_CMD = {
-	FILE_NAME
+	FILE_NAME_NO_PATH
 }
-SPEC_EXE = {
-	ABS_PATH_TO_FILE | REL_PATH_TO_FILE
+PERF_EXE = {
+	FILE_NAME_WITH_PATH
 }
-SCRIPT = {
-	(CMD ~ "|" )* ~ CMD
-}
-CMD = {
-	CMD_NAME ~ (" " ~ ARG)*
-}
-CMD_NAME = {
-	BUILTIN |
-	OUTER_CMD |
-	SPEC_EXE
-}
-ARG = {
-	QUOTED_STR | NO_BLANK_STR
-}
-QUOTED_STR = _{
-	"\"" ~ (!"\"" ~ ANY)+ ~ "\""
-}
-NO_BLANK_STR = _{
-	(!(" " | "\t") ~ ANY)+
+ARG = _{
+	D_QUOTED_STR | NO_SPACE_STR
 }

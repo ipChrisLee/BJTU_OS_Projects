@@ -6,6 +6,7 @@ use std::fmt::format;
 use regex::Regex;
 use std::path::{PathBuf};
 use std::env::{current_dir};
+use crate::lsh_parser::{parse_string,Command};
 
 
 pub struct Kernel {
@@ -33,7 +34,8 @@ impl Kernel {
 		loop {
 			let script = self.ui.get_input(&self.pwd);
 			let script = self.preprocess_script(&script);
-			dbg!(script);
+			let cmds=parse_string(script.as_str());
+			dbg!(cmds);
 		}
 	}
 }
