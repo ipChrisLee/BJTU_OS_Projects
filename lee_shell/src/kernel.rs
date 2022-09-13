@@ -30,7 +30,7 @@ impl Kernel {
 		}
 	}
 	pub fn work(&self) {
-		while (true) {
+		loop {
 			let script = self.ui.get_input(&self.pwd);
 			let script = self.preprocess_script(&script);
 			dbg!(script);
