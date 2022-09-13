@@ -1,0 +1,42 @@
+FILE_NAME = _{
+	(ASCII_ALPHANUMERIC | "_" | "-") ~
+	(ASCII_ALPHANUMERIC | "_" | "-" | ".")*
+}
+PATH_CHANGE = _{
+	"./" | "../" | FILE_NAME ~ "/"
+}
+ABS_PATH_TO_FILE = _{
+	"/" ~ PATH_CHANGE* ~ FILE_NAME
+}
+REL_PATH_TO_FILE = _{
+	PATH_CHANGE* ~ FILE_NAME
+}
+BUILTIN = {
+	"cd" | "exit" | "exec" | "kill" | "export" | "echo" | "pwd"
+}
+OUTER_CMD = {
+	FILE_NAME
+}
+SPEC_EXE = {
+	ABS_PATH_TO_FILE | REL_PATH_TO_FILE
+}
+SCRIPT = {
+	(CMD ~ "|" )* ~ CMD
+}
+CMD = {
+	CMD_NAME ~ (" " ~ ARG)*
+}
+CMD_NAME = {
+	BUILTIN |
+	OUTER_CMD |
+	SPEC_EXE
+}
+ARG = {
+	QUOTED_STR | NO_BLANK_STR
+}
+QUOTED_STR = _{
+	"\"" ~ (!"\"" ~ ANY)+ ~ "\""
+}
+NO_BLANK_STR = _{
+	(!(" " | "\t") ~ ANY)+
+}

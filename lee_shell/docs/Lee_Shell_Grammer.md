@@ -1,12 +1,24 @@
 # Before all
 
-We will replace `$` variables first.(`\$HOME` WILL be replaced!)
+We will replace `$` variables first.(`\${HOME}` WILL be replaced!)
 
-Like `$HOME/Main`, will be expanded to `/Users/lee/Main` in my PC.
+Like `${HOME}/Main`, will be expanded to `/Users/lee/Main` in my PC.
 
 
 
 # Grammar
+
+## Some Basic Rule
+
+* I will not support [escape character](https://en.wikipedia.org/wiki/Escape_character) for now. It is too difficult and has little meaning for my OS understanding.
+
+  So anything like 
+
+  * Run `ls\ all.sh`.
+
+  is not supported!
+
+  Escape character in quoted string may be supported.
 
 Here we will define a grammar for our shell scripts. Use [BNF](https://en.wikipedia.org/wiki/Backus–Naur_form) notation.
 
