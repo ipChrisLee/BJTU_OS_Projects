@@ -1,17 +1,15 @@
 use crate::ui::{UI};
-use crate::default_env_vars::{DEFAULT_ENV_VARS};
-use std::collections::HashMap;
 use std::env;
 use std::fmt::format;
 use regex::Regex;
 use std::path::{PathBuf};
-use std::env::{current_dir};
+use std::env::{current_dir,var,set_current_dir};
+use crate::runner::run;
 use crate::lsh_parser::{parse_string,Command};
 
 
 pub struct Kernel {
 	ui: UI,
-	pwd: PathBuf,
 }
 
 impl Kernel {
@@ -27,15 +25,14 @@ impl Kernel {
 	pub fn new() -> Kernel {
 		Kernel {
 			ui: UI::new(),
-			pwd: current_dir().unwrap(),
 		}
 	}
 	pub fn work(&self) {
 		loop {
-			let script = self.ui.get_input(&self.pwd);
+			let script = self.ui.get_input();
 			let script = self.preprocess_script(&script);
 			let cmds=parse_string(script.as_str());
-			dbg!(cmds);
+			run(cmds);
 		}
 	}
 }

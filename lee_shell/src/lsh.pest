@@ -15,7 +15,7 @@ D_QUOTED_STR = @{
 	"\"" ~ STR_INNER ~ "\""
 }
 NO_SPACE_STR = @{
-	("." | "-" | "_" | ASCII_ALPHANUMERIC)+
+	("." | "-" | "_" | "/" | ASCII_ALPHANUMERIC)+
 }
 
 FILE_NAME_NO_PATH = @{
@@ -51,7 +51,7 @@ CMD_NAME = {
 	SPEC_EXE
 }
 BUILTIN_CMD = {
-	"cd" | "exit" | "exec" | "kill" | "export" | "echo" | "pwd"
+	"cd" | "exit" | "kill" | "echo" | "pwd"
 }
 OUTER_CMD = {
 	FILE_NAME_NO_PATH

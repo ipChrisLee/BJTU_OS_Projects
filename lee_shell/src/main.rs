@@ -4,8 +4,8 @@ extern crate pest_derive;
 
 mod kernel;
 mod ui;
-mod default_env_vars;
 mod lsh_parser;
+mod runner;
 
 use crate::kernel::{Kernel};
 

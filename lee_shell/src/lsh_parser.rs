@@ -1,29 +1,30 @@
 use core::panic;
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
+use std::iter::Cloned;
 use std::path::PathBuf;
 
 #[derive(Parser)]
 #[grammar = "lsh.pest"]
 pub struct LSHParser;
 
-#[derive(Debug)]
-enum CmdType {
+#[derive(Debug, Clone)]
+pub enum CmdType {
     Builtin(String),
     Outer(String),
     SpecExe(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Command {
-    cmd_type: CmdType,
-    args: Vec<String>,
-    redirect_in: Option<PathBuf>,
-    redirect_out: Option<PathBuf>,
+    pub cmd_type: CmdType,
+    pub args: Vec<String>,
+    pub redirect_in: Option<PathBuf>,
+    pub redirect_out: Option<PathBuf>,
 }
 
 fn parse_cmd_name(cmd_name_pair: Pair<Rule>) -> CmdType {
-    let mut pairs=cmd_name_pair.into_inner();
+    let mut pairs = cmd_name_pair.into_inner();
     let pair = pairs.next().unwrap();
     match pair.as_rule() {
         Rule::BUILTIN_CMD => CmdType::Builtin(pair.as_str().to_string()),
@@ -43,11 +44,11 @@ fn parse_redirect(redirect_info_pair: Pair<Rule>) -> (Option<PathBuf>, Option<Pa
     for pair in redirect_info_pair.into_inner() {
         match pair.as_rule() {
             Rule::CHANGE_INPUT => {
-                let pair=pair.into_inner().next().unwrap();
+                let pair = pair.into_inner().next().unwrap();
                 redirect_in = Some(PathBuf::from(pair.as_str()))
             }
             Rule::CHANGE_OUTPUT => {
-                let pair=pair.into_inner().next().unwrap();
+                let pair = pair.into_inner().next().unwrap();
                 redirect_out = Some(PathBuf::from(pair.as_str()))
             }
             a => panic!("{:?}", a),
@@ -66,7 +67,7 @@ fn parse_cmd(cmd_pair: Pair<Rule>) -> Command {
             Rule::CMD_NAME => cmd_name = Some(parse_cmd_name(pair)),
             Rule::ARG => args.push(parse_arg(pair)),
             Rule::REDIRECT_IO => (redirect_in, redirect_out) = parse_redirect(pair),
-            a=> panic!("{:?}", a),
+            a => panic!("{:?}", a),
         }
     }
     Command {
