@@ -33,7 +33,7 @@ FILE_NAME = {
 
 SCRIPT = _{ SOI ~ PIPE_CMD? ~ EOI }
 WS = _{ (WHITESPACE | COMMENT)+ }
-PIPE_CMD = { CMD ~ ("|" ~ CMD)* }
+PIPE_CMD = { CMD ~ ("|" ~ CMD)* ~ REDIRECT_IO? }
 REDIRECT_IO = {
 	&"<" ~ CHANGE_INPUT ~ (&">" ~ CHANGE_OUTPUT)? |
 	&">" ~ CHANGE_OUTPUT ~ (&"<" ~ CHANGE_INPUT)?
@@ -45,10 +45,10 @@ CHANGE_OUTPUT = {
 	">" ~ FILE_NAME
 }
 CMD = { CMD_NAME ~ ARG* ~ REDIRECT_IO? }
-CMD_NAME = _{
+CMD_NAME = {
 	BUILTIN_CMD |
 	OUTER_CMD |
-	PERF_EXE
+	SPEC_EXE
 }
 BUILTIN_CMD = {
 	"cd" | "exit" | "exec" | "kill" | "export" | "echo" | "pwd"
@@ -56,9 +56,9 @@ BUILTIN_CMD = {
 OUTER_CMD = {
 	FILE_NAME_NO_PATH
 }
-PERF_EXE = {
+SPEC_EXE = {
 	FILE_NAME_WITH_PATH
 }
-ARG = _{
+ARG = {
 	D_QUOTED_STR | NO_SPACE_STR
 }
