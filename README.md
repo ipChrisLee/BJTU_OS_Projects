@@ -4,3 +4,4 @@ I decide to public it and am not afraid of been copied is just because it is wri
 
 This "README.md" is located on root of folder, and every sub folder of this root is a root of a subproject. Feel free to read!
 
+NOTICE: This is OS projects of HuangHua class, which may not be same as yours!
