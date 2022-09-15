@@ -1,4 +1,7 @@
 use core::panic;
+use nix::fcntl::{open, OFlag};
+use nix::sys::stat::Mode;
+use nix::unistd::{chdir, close, dup, dup2, execv, execvp, fork};
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use std::iter::Cloned;
@@ -21,6 +24,31 @@ pub struct Command {
     pub args: Vec<String>,
     pub redirect_in: Option<PathBuf>,
     pub redirect_out: Option<PathBuf>,
+}
+
+impl Command {
+    pub fn redirect(&self) {
+        if let Some(ref redirect_in) = self.redirect_in {
+            let fd = open(
+                redirect_in.as_os_str(),
+                OFlag::O_RDONLY,
+                Mode::S_IRUSR | Mode::S_IWUSR,
+            )
+            .unwrap();
+            dup2(fd, 0).unwrap();
+            close(fd).unwrap();
+        }
+        if let Some(ref redirect_out) = self.redirect_out {
+            let fd = open(
+                redirect_out.as_os_str(),
+                OFlag::O_WRONLY | OFlag::O_CREAT | OFlag::O_TRUNC,
+                Mode::S_IRUSR | Mode::S_IWUSR,
+            )
+            .unwrap();
+            dup2(fd, 1).unwrap();
+            close(fd).unwrap();
+        }
+    }
 }
 
 fn parse_cmd_name(cmd_name_pair: Pair<Rule>) -> CmdType {

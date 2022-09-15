@@ -51,7 +51,7 @@ CMD_NAME = {
 	SPEC_EXE
 }
 BUILTIN_CMD = {
-	"cd" | "exit" | "kill" | "echo" | "pwd"
+	"cd" | "exit" | "kill" | "echo" | "pwd" 
 }
 OUTER_CMD = {
 	FILE_NAME_NO_PATH

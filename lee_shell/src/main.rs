@@ -6,6 +6,7 @@ mod kernel;
 mod ui;
 mod lsh_parser;
 mod runner;
+mod config;
 
 use crate::kernel::{Kernel};
 
