@@ -2,15 +2,16 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
+mod config;
+mod history;
 mod kernel;
-mod ui;
 mod lsh_parser;
 mod runner;
-mod config;
+mod ui;
 
-use crate::kernel::{Kernel};
+use crate::kernel::Kernel;
 
 fn main() {
-	let mut lee_shell = Kernel::new();
-	lee_shell.work();
+    let mut lee_shell = Kernel::new();
+    lee_shell.work();
 }

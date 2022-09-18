@@ -49,6 +49,34 @@ impl Command {
             close(fd).unwrap();
         }
     }
+    pub fn to_history(&self) -> Option<usize> {
+        if let CmdType::Builtin(ref cmd) = self.cmd_type {
+            if cmd.eq("!!") {
+                Some(0)
+            } else if cmd.eq("!") {
+                let s = self.args.get(0).unwrap().parse::<usize>().unwrap();
+                Some(s)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+    pub fn to_string(&self) -> String {
+        let mut s = String::new();
+        match self.cmd_type {
+            CmdType::Builtin(ref c) => s.push_str(c.as_str()),
+            CmdType::Outer(ref c) => s.push_str(c.as_str()),
+            CmdType::SpecExe(ref c) => s.push_str(c.as_str()),
+        }
+        for arg in &self.args {
+            s.push_str(" \"");
+            s.push_str(arg.as_str());
+            s.push_str("\"");
+        }
+        s
+    }
 }
 
 fn parse_cmd_name(cmd_name_pair: Pair<Rule>) -> CmdType {
@@ -63,7 +91,18 @@ fn parse_cmd_name(cmd_name_pair: Pair<Rule>) -> CmdType {
 }
 
 fn parse_arg(arg_str_pair: Pair<Rule>) -> String {
-    arg_str_pair.as_str().to_string()
+    let arg_str_pair=arg_str_pair.into_inner().into_iter().next().unwrap();
+    // dbg!(arg_str_pair.clone());
+    match arg_str_pair.as_rule() {
+        Rule::D_QUOTED_STR => {
+            let mut chs = arg_str_pair.as_str().chars();
+            chs.next();
+            chs.next_back();
+            chs.as_str().to_string()
+        }
+        Rule::NO_SPACE_STR => arg_str_pair.as_str().to_string(),
+        _ => panic!(),
+    }
 }
 
 fn parse_redirect(redirect_info_pair: Pair<Rule>) -> (Option<PathBuf>, Option<PathBuf>) {

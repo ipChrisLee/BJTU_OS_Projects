@@ -8,6 +8,7 @@ node "lsh"{
 	[EnvVar] <--> [Kernel] : Support.
 	[Kernel] -> [Runner] : Give commands to run.
 	[Runner] --> [Kernel] : Return result.
+	[Kernel] <--> [History] : Load/Restore history command.
 }
 node "User"{
 	User --> [UI] : Input Command.

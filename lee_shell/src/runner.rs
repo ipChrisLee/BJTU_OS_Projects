@@ -73,6 +73,12 @@ fn run_builtin_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
             };
             kill(Pid::from_raw(pid), SIGKILL).unwrap();
         }
+        "history" => {
+            kernel
+                .history
+                .all_history()
+                .for_each(|(i, c)| println!("{} : {}", i, c));
+        }
         s => todo!("todo builtin {}", s),
     }
 }
