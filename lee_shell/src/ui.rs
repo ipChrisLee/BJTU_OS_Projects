@@ -11,6 +11,7 @@ impl UI {
         UI {}
     }
     pub fn get_input(&self) -> String {
+        stdout().flush().expect("Flush failed.");
         print!("{}:", current_dir().unwrap().to_str().unwrap());
         stdout().flush().expect("Flush failed.");
         let mut s = String::new();

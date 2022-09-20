@@ -1,12 +1,13 @@
-use crate::kernel::Kernel;
-use crate::lsh_parser::{CmdType, Command};
+use crate::command::{self, CmdType, Command, CommandGroup};
+use crate::kernel::{self, Kernel};
 use core::panic;
+use log::info;
 use nix::errno::Errno;
 use nix::fcntl::{open, OFlag};
 use nix::sys::signal::kill;
 use nix::sys::signal::Signal::SIGKILL;
 use nix::sys::stat::Mode;
-use nix::sys::wait::wait;
+use nix::sys::wait::{wait, waitpid};
 use nix::unistd::ForkResult::{Child, Parent};
 use nix::unistd::{chdir, close, dup, dup2, execv, execvp, fork};
 use nix::unistd::{pipe, ForkResult, Pid};
@@ -32,7 +33,7 @@ fn find_command(cmd_name: String) -> Option<PathBuf> {
     }
     None
 }
-fn run_builtin_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
+fn run_builtin_command_in_place(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
     match cmd_name.as_str() {
         "cd" => {
             let dir = if let Some(cd_dir) = args.get(0) {
@@ -77,13 +78,13 @@ fn run_builtin_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
             kernel
                 .history
                 .all_history()
-                .for_each(|(i, c)| println!("{} : {}", i, c));
+                .for_each(|(i, c)| println!("{} : {}", i, c.to_string()));
         }
         s => todo!("todo builtin {}", s),
     }
 }
 
-fn run_outer_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
+fn run_outer_command_in_place(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
     // dbg!(cmd_name.clone());
     let p_exe = find_command(cmd_name).unwrap();
     let p_exe = p_exe.as_path().to_str().unwrap();
@@ -94,11 +95,11 @@ fn run_outer_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
         .map(|s| CString::new(s).unwrap())
         .collect::<Vec<_>>();
     let argv = argv.iter().map(|s| s.as_c_str()).collect::<Vec<_>>();
-    dbg!(argv.clone());
+    // dbg!(argv.clone());
     execv(argv[0], argv.as_slice()).unwrap();
 }
 
-fn run_spec_exe_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
+fn run_spec_exe_command_in_place(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
     let p_exe = PathBuf::from(cmd_name);
     let p_exe = if p_exe.is_relative() {
         let mut p = PathBuf::from(current_dir().unwrap());
@@ -120,105 +121,155 @@ fn run_spec_exe_command(kernel: &Kernel, cmd_name: String, args: Vec<String>) {
     execv(argv[0], argv.as_slice()).unwrap();
 }
 
-//  Run command. This will run on this process(builtin) or replace this process(outer/spec_exe)
-fn run_command_from_this(kernel: &Kernel, cmd: Command) {
+//  For builtin: This will return to parent process.
+//  Otherwise  : This will not return to parent process.
+//  This will redirect io.
+fn run_command_in_place(kernel: &Kernel, cmd: Command) {
+    cmd.redirect();
     match cmd.cmd_type {
-        CmdType::Builtin(cmd_name) => run_builtin_command(kernel, cmd_name, cmd.args),
-        CmdType::Outer(cmd_name) => run_outer_command(kernel, cmd_name, cmd.args),
-        CmdType::SpecExe(cmd_name) => run_spec_exe_command(kernel, cmd_name, cmd.args),
+        CmdType::Builtin(cmd_name) => run_builtin_command_in_place(kernel, cmd_name, cmd.args),
+        CmdType::Outer(cmd_name) => run_outer_command_in_place(kernel, cmd_name, cmd.args),
+        CmdType::SpecExe(cmd_name) => run_spec_exe_command_in_place(kernel, cmd_name, cmd.args),
     }
 }
 
-fn run_command_without_exiting_this(kernel: &Kernel, cmd: Command) {
-    if let CmdType::Builtin(ref _cmd_name) = cmd.cmd_type {
-        run_command_from_this(kernel, cmd);
+//  For all command: This will return to parent process. But builtin will not work.
+//  This will redirect io.
+//  You can choose wait or not wait for subprocess end.
+fn run_command_out_of_place(kernel: &Kernel, cmd: Command, wait_for_end: bool) {
+    let pid = unsafe { fork() }.unwrap();
+    match pid {
+        Parent { child: _ } => {
+            if wait_for_end {
+                wait().unwrap();
+            }
+        }
+        Child => {
+            run_command_in_place(kernel, cmd);
+            exit(0);
+        }
+    }
+}
+
+//  For all command: This will return to parent process. And builtin will work.
+//  This will redirect io. So you should notice io for builtin.
+//  This will return until subprocess end.
+fn run_command_combined(kernel: &Kernel, command: Command) {
+    command.redirect();
+    if let CmdType::Builtin(ref cmd_name) = command.cmd_type {
+        run_builtin_command_in_place(kernel, cmd_name.clone(), command.args);
         return;
     }
-    //  For other commands, just run on sub process.
-    let pid;
-    unsafe {
-        pid = fork();
-    }
-    let pid = pid.expect("Fork Failed: Unable to create child process!");
+    let pid = unsafe { fork() }.unwrap();
     match pid {
         Parent { child: _ } => {
             wait().unwrap();
         }
         Child => {
-            run_command_from_this(kernel, cmd);
-            exit(0); //  unreacheable in fact.
-        }
-    };
-}
-
-fn run_multiple_commands(kernel: &Kernel, commands: Vec<Command>) {
-    let mut it = commands.into_iter();
-    let cmd0 = it.next().unwrap();
-    let cmd_rest: Vec<_> = it.collect();
-    let p = pipe().unwrap();
-    let pid;
-    unsafe {
-        pid = fork().unwrap();
-    }
-    match pid {
-        Parent { child: _ } => {
-            close(p.0).unwrap();
-            dup2(p.1, 1).unwrap();
-            close(p.1).unwrap();
-            run_command_from_this(kernel, cmd0);
+            match command.cmd_type {
+                CmdType::Outer(cmd_name) => {
+                    run_outer_command_in_place(kernel, cmd_name, command.args)
+                }
+                CmdType::SpecExe(cmd_name) => {
+                    run_spec_exe_command_in_place(kernel, cmd_name, command.args)
+                }
+                _ => panic!(),
+            };
             exit(0);
         }
-        Child => {
-            close(p.1).unwrap();
-            dup2(p.0, 0).unwrap();
-            close(p.0).unwrap();
-            if cmd_rest.len() == 1 {
-                println!("??");
-                run_command_from_this(kernel, cmd_rest.into_iter().next().unwrap());
-                exit(0);
-            } else if cmd_rest.len() > 1 {
-                run_multiple_commands(kernel, cmd_rest);
-            } else {
-                panic!("");
+    }
+}
+
+fn run_single_command_on_frontend(kernel: &Kernel, command: Command) {
+    let fd_stdin = dup(0).unwrap();
+    let fd_stdout = dup(1).unwrap();
+    let fd_stderr = dup(2).unwrap();
+    run_command_combined(kernel, command);
+    dup2(fd_stdin, 0).unwrap();
+    close(fd_stdin).unwrap();
+    dup2(fd_stdout, 1).unwrap();
+    close(fd_stdout).unwrap();
+    dup2(fd_stderr, 2).unwrap();
+    close(fd_stderr).unwrap();
+}
+fn run_single_command_on_background(kernel: &Kernel, command: Command) {
+    run_command_out_of_place(kernel, command, false);
+}
+
+fn run_multi_commands(kernel: &Kernel, commands: Vec<Command>, wait_for_end: bool) {
+    // info!("Running commands. wait_for_end = {}",wait_for_end);
+    let pid = unsafe { fork() }.unwrap();
+    match pid {
+        Parent { child } => {
+            if wait_for_end {
+                waitpid(child, None).unwrap();
             }
+        }
+        Child => {
+            let n_command = commands.len();
+            let mut iter = commands.into_iter().peekable();
+            let mut pre_out = 0;
+            while let Some(command) = iter.next() {
+                if iter.peek().is_none() {
+                    //  the last
+                    let pid = unsafe { fork() }.unwrap();
+                    match pid {
+                        Parent { child: _ } => {
+                            close(pre_out).unwrap();
+                        }
+                        Child => {
+                            dup2(pre_out, 0).unwrap();
+                            run_command_in_place(kernel, command);
+                            exit(0);
+                        }
+                    }
+                } else {
+                    let p = pipe().unwrap();
+                    let pid = unsafe { fork() }.unwrap();
+                    match pid {
+                        Parent { child: _ } => {
+                            close(p.1).unwrap();
+                            if pre_out != 0 {
+                                close(pre_out).unwrap();
+                            }
+                            pre_out = p.0;
+                        }
+                        Child => {
+                            close(p.0).unwrap();
+                            dup2(pre_out, 0).unwrap();
+                            dup2(p.1, 1).unwrap();
+                            run_command_in_place(kernel, command);
+                            exit(0);
+                        }
+                    }
+                }
+            }
+            if wait_for_end {
+                for _i in 1..n_command {
+                    wait().unwrap();
+                }
+            }
+            exit(0);
         }
     }
 }
 
-fn run_single_command(kernel: &Kernel, cmd: Command) {
-    cmd.redirect();
-    run_command_without_exiting_this(kernel, cmd);
-}
-
-pub fn run(kernel: &Kernel, commands: Vec<Command>) {
-    dbg!("Running ", commands.clone());
+pub fn run(kernel: &Kernel, commands: CommandGroup) {
+    let on_background = commands.on_background;
+    let commands = commands.commands;
+    info!("{:?}", commands.clone());
     if commands.is_empty() {
+        // info!("Empty!");
     } else if commands.len() == 1 {
-        let fd_stdin = dup(0).unwrap();
-        let fd_stdout = dup(1).unwrap();
-        let fd_stderr = dup(2).unwrap();
-
-        run_single_command(kernel, commands.into_iter().next().unwrap());
-
-        dup2(fd_stdin, 0).unwrap();
-        close(fd_stdin).unwrap();
-        dup2(fd_stdout, 1).unwrap();
-        close(fd_stdout).unwrap();
-        dup2(fd_stderr, 2).unwrap();
-        close(fd_stderr).unwrap();
+        // info!("Single!");
+        let command = commands.into_iter().next().unwrap();
+        if on_background {
+            run_single_command_on_background(kernel, command);
+        } else {
+            run_single_command_on_frontend(kernel, command);
+        }
     } else {
-        let pid;
-        unsafe {
-            pid = fork().unwrap();
-        }
-        match pid {
-            Parent { child: _ } => {
-                wait().unwrap();
-            }
-            Child => {
-                run_multiple_commands(kernel, commands);
-                exit(0);
-            }
-        }
+        // info!("Multi!");
+        run_multi_commands(kernel, commands, !on_background);
     }
 }

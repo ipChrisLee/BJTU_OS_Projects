@@ -1,7 +1,9 @@
+use crate::command::{self, Command};
 use crate::history::History;
-use crate::lsh_parser::{parse_string, Command};
+use crate::lsh_parser::parse_string;
 use crate::runner::run;
 use crate::ui::UI;
+use log::info;
 use std::env::{current_dir, set_current_dir, var};
 use std::path::PathBuf;
 use std::{convert, env};
@@ -31,24 +33,19 @@ impl Kernel {
         loop {
             let script = self.ui.get_input();
             let script = self.preprocess_script(&script);
-            let cmds = parse_string(script.as_str());
-            let mut converted_cmds = Vec::<Command>::new();
-            for cmd in cmds {
-                dbg!(cmd.clone());
-                if let Some(i) = cmd.to_history() {
-                    let cmd_s = self.history.get_n_history(i).unwrap();
-                    converted_cmds.extend(parse_string(cmd_s.as_str()));
-                } else {
-                    converted_cmds.push(cmd);
-                }
+            let mut command_group = parse_string(script.as_str());
+            if let Some(res) = command_group.to_history_number() {
+                let history_command_group_id = res.unwrap();
+                info!("using history {:?}",history_command_group_id);
+                command_group = self
+                    .history
+                    .get_n_history(history_command_group_id)
+                    .unwrap()
+                    .clone();
             }
-            let mut history_s = String::new();
-            converted_cmds
-                .iter()
-                .for_each(|c| history_s.push_str(c.to_string().as_str()));
-            dbg!(history_s.clone());
-            self.history.add_history(history_s);
-            run(self, converted_cmds);
+            info!("{:?}", command_group.clone());
+            self.history.add_history(command_group.clone());
+            run(self, command_group);
         }
     }
 }

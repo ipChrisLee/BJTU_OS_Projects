@@ -19,7 +19,7 @@ NO_SPACE_STR = @{
 }
 
 FILE_NAME_NO_PATH = @{
-	("-" | "_" | ASCII_ALPHANUMERIC) ~ ("." | "-" | "_" | ASCII_ALPHANUMERIC)+
+	("-" | "_" | ASCII_ALPHANUMERIC) ~ ("." | "-" | "_" | ASCII_ALPHANUMERIC)*
 }
 
 FILE_NAME_WITH_PATH = @{
@@ -33,7 +33,8 @@ FILE_NAME = {
 
 SCRIPT = _{ SOI ~ PIPE_CMD? ~ EOI }
 WS = _{ (WHITESPACE | COMMENT)+ }
-PIPE_CMD = { CMD ~ ("|" ~ CMD)* ~ REDIRECT_IO? }
+PIPE_CMD = { CMD ~ ("|" ~ CMD)* ~ ON_BACK? }
+ON_BACK = { "&" }
 REDIRECT_IO = {
 	&"<" ~ CHANGE_INPUT ~ (&">" ~ CHANGE_OUTPUT)? |
 	&">" ~ CHANGE_OUTPUT ~ (&"<" ~ CHANGE_INPUT)?
