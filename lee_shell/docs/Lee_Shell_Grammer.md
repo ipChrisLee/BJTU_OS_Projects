@@ -10,7 +10,7 @@ Like `${HOME}/Main`, will be expanded to `/Users/lee/Main` in my PC.
 
 ## Some Basic Rule
 
-* I will not support [escape character](https://en.wikipedia.org/wiki/Escape_character) for now. It is too difficult and has little meaning for my OS understanding.
+* I will not support [escape character](https://en.wikipedia.org/wiki/Escape_character). It is too difficult and has little meaning for my OS understanding.
 
   So anything like 
 
@@ -18,41 +18,11 @@ Like `${HOME}/Main`, will be expanded to `/Users/lee/Main` in my PC.
 
   is not supported!
 
-  Escape character in quoted string may be supported.
+  Escape character in quoted string is supported  (My shell will just forward it to `exec`.).
+  
+* For our shell, `ls -a | grep "a" << buffer.txt` is a valid script but will cause runtime error. This is because I don't check if a subcommand is redirected twice.
 
-Here we will define a grammar for our shell scripts. Use [BNF](https://en.wikipedia.org/wiki/Backus–Naur_form) notation.
+* My shell will not do something special for command running on background. That means, I'm not dealing with possible preemption of stdin and stdout.
 
-Lex define: (Use [Regular Expression](https://en.wikipedia.org/wiki/Regular_expression))
-
-```pascal
-<BUILTIN>:=cd|exit|exec|kill|export|echo|pwd
-<OUTER_CMD>:=[^./\s]+
-<SPEC_EXE>:=\.{0,2}(/[^/\s]+)
-<QUOTED_STR>:=\"(\\"|[^"])*\"
-<NO_BLANK_STR>:=[\w-.]+
-```
-
-
-
-Grammar define: 
-
-```pascal
-<SCRIPTS> := 
-	<CMD>					//	ls
-	<CMD> "|" <SCRIPTS>		//	ls -a | grep "a"
-<CMD> := 
-	<CMD_NAME>				//	ls
-	<CMD_NAME> <ARGS>		//	ls -a
-<ARGS> :=
-	<ARG>					{*	Single argument	*}
-	<ARG> <ARGS>			
-<CMD_NAME> :=
-	<BUILTIN>				{*	Built-in commands	*}	
-    <OUTER_CMD>				{*	Outer commands like `sleep`	*}
-	<SPEC_EXE>				//	./main
-							//	/usr/bin/gcc
-<ARG> := 
-	<QUOTED_STR>
-	<NO_BLANK_STR>
-```
+We will define a grammar for our shell scripts. Use [BNF](https://en.wikipedia.org/wiki/Backus–Naur_form) notation and [Pest support](https://pest.rs/book/intro.html) in `src/lsh.pest`.
 

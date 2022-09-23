@@ -139,9 +139,9 @@ fn run_command_in_place(kernel: &Kernel, cmd: Command) {
 fn run_command_out_of_place(kernel: &Kernel, cmd: Command, wait_for_end: bool) {
     let pid = unsafe { fork() }.unwrap();
     match pid {
-        Parent { child: _ } => {
+        Parent { child } => {
             if wait_for_end {
-                wait().unwrap();
+                waitpid(child, None).unwrap();
             }
         }
         Child => {
@@ -152,7 +152,7 @@ fn run_command_out_of_place(kernel: &Kernel, cmd: Command, wait_for_end: bool) {
 }
 
 //  For all command: This will return to parent process. And builtin will work.
-//  This will redirect io. So you should notice io for builtin.
+//  This will redirect io. So you should notice io for builtin(Since this will change the performance of shell).
 //  This will return until subprocess end.
 fn run_command_combined(kernel: &Kernel, command: Command) {
     command.redirect();
@@ -162,8 +162,8 @@ fn run_command_combined(kernel: &Kernel, command: Command) {
     }
     let pid = unsafe { fork() }.unwrap();
     match pid {
-        Parent { child: _ } => {
-            wait().unwrap();
+        Parent { child } => {
+            waitpid(child, None).unwrap();
         }
         Child => {
             match command.cmd_type {
@@ -206,7 +206,7 @@ fn run_multi_commands(kernel: &Kernel, commands: Vec<Command>, wait_for_end: boo
             }
         }
         Child => {
-            let n_command = commands.len();
+            let mut childs_pid = Vec::new();
             let mut iter = commands.into_iter().peekable();
             let mut pre_out = 0;
             while let Some(command) = iter.next() {
@@ -214,7 +214,8 @@ fn run_multi_commands(kernel: &Kernel, commands: Vec<Command>, wait_for_end: boo
                     //  the last
                     let pid = unsafe { fork() }.unwrap();
                     match pid {
-                        Parent { child: _ } => {
+                        Parent { child } => {
+                            childs_pid.push(child);
                             close(pre_out).unwrap();
                         }
                         Child => {
@@ -227,7 +228,8 @@ fn run_multi_commands(kernel: &Kernel, commands: Vec<Command>, wait_for_end: boo
                     let p = pipe().unwrap();
                     let pid = unsafe { fork() }.unwrap();
                     match pid {
-                        Parent { child: _ } => {
+                        Parent { child } => {
+                            childs_pid.push(child);
                             close(p.1).unwrap();
                             if pre_out != 0 {
                                 close(pre_out).unwrap();
@@ -245,8 +247,8 @@ fn run_multi_commands(kernel: &Kernel, commands: Vec<Command>, wait_for_end: boo
                 }
             }
             if wait_for_end {
-                for _i in 1..n_command {
-                    wait().unwrap();
+                for pid in childs_pid {
+                    waitpid(pid, None).unwrap();
                 }
             }
             exit(0);

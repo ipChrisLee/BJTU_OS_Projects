@@ -144,13 +144,3 @@ Like `&&`, `||`. Just like logical operator in C.
 
 
 
-# Rust Support
-
-## System Call
-
-[system call crate](https://docs.rs/linux/0.0.1/linux/syscall/index.html)
-
-* `chdir`
-
-
-
