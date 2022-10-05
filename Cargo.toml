@@ -1,2 +1,2 @@
 [workspace]
-members = ["lee_shell"]
+members = ["lee_shell", "multi_thread_programming"]
