@@ -9,4 +9,5 @@ NOTICE: This is OS projects of HuangHua class, which may not be same as yours!
 > I found that Huanghua OS projects are from *OS Concepts*. Correspondence is listed here.
 >
 > * lee_shell: Chap03 Project01
+> * multi_thread_programming: Chap04 Project01 and Project03
 
