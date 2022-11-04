@@ -126,22 +126,16 @@ pub fn pipe_with_big_buffer(src_file_path: &str, dst_file_path: &str, target_str
             dup2(pipe_from_parent_to_child.0, 0).unwrap();
             close(pipe_from_parent_to_child.0).unwrap();
             //  Read from parent, but not filter.
-            info!("Child will begin to read from parent.");
+            info!("Child will begin to read from parent and filter and transfer.");
             let mut buf = String::new();
-            while stdin().read_line(&mut buf).unwrap() > 0 {}
-            info!("Child finished reading from parent.");
-            //  Filter, and write result to lower pipe.
-            info!("Child will begin to filter and write back to parent.");
             let mut res = String::new();
-            let res = &mut res;
-            buf.split("\n")
-                .filter(|line| line.split_whitespace().any(|s| s.eq(target_str)))
-                .for_each(|line| {
-                    res.push_str(line);
-                    res.push('\n');
-                });
+            while stdin().read_line(&mut buf).unwrap() > 0 {
+                if buf.split_whitespace().any(|word| word.eq(target_str)){
+                    res.push_str(buf.as_str());
+                }
+                buf.clear();
+            }
             write(pipe_from_child_to_parent.1, res.as_bytes()).unwrap();
-            info!("Child finished filtering and writing.");
             //  Finish.
             exit(0);
         }
@@ -244,4 +238,3 @@ pub fn pipe_half_duplex(src_file_path: &str, dst_file_path: &str, target_str: &s
         }
     }
 }
-
