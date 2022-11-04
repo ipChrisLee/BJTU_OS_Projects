@@ -26,6 +26,19 @@
 
    3. 使用半双工方式实现：
 
+      ```shell
+      cargo run --bin ipc_practice demo/ANNA_KARENINA.txt demo/grep.txt the pipe_half_duplex
+      ```
+
+   4. 使用全双工的方式实现：
+
+      ```shell
+      rm demo/fifo_*
+      cargo run --bin ipc_practice demo/ANNA_KARENINA.txt demo/grep.txt the pipe_duplex
+      ```
+
+      
+
 2. `socket`方式
 
    ```shell

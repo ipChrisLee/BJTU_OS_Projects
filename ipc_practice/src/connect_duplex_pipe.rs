@@ -121,13 +121,18 @@ pub fn pipe_duplex(src_file_path: &str, dst_file_path: &str, target_str: &str) {
             dbg!("c2p_read");
             // close(p.0).unwrap();
             // write(p.1, &[0 as u8]).unwrap();
-            sleep(3);
-            let fd_p2c_write = open(
-                FIFO_P2C_PATH,
-                OFlag::O_WRONLY | OFlag::O_NONBLOCK,
-                Mode::S_IWUSR,
-            )
-            .unwrap();
+            let fd_p2c_write;
+            loop {
+                let r = open(
+                    FIFO_P2C_PATH,
+                    OFlag::O_WRONLY | OFlag::O_NONBLOCK,
+                    Mode::S_IWUSR,
+                );
+                if let Ok(i) = r {
+                    fd_p2c_write = i;
+                    break;
+                }
+            }
             dbg!("p2c_write");
             parent_part(src_file_path, dst_file_path, fd_p2c_write, fd_c2p_read);
             waitpid(child, None).unwrap();
