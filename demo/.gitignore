@@ -2,3 +2,5 @@ grep.txt
 demo/tmp.sock
 shmem
 fifo
+fifo_c2p
+fifo_p2c
