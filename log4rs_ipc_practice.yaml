@@ -1,0 +1,13 @@
+appenders:
+  file:
+    kind: file
+    path: "log/ipc_practice.log"
+    append: false
+    encoder:
+      # log 信息模式
+      pattern: "{l} [{f}::{L}] of [{P}] : {m}{n}"
+# 对全局 log 进行配置
+root:
+  level: info
+  appenders:
+    - file

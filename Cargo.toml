@@ -1,2 +1,2 @@
 [workspace]
-members = ["lee_shell", "multi_thread_programming"]
+members = ["lee_shell", "multi_thread_programming", "ipc_practice"]

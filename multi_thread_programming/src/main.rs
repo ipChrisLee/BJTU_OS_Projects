@@ -122,15 +122,15 @@ fn check_sort(filepath: &str) {
         .into_iter()
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
-    dbg!("{}", nums.clone());
+    dbg!(nums.clone());
     let n = nums.len() - 1;
     let ans = m_sort(&nums, 0, n);
-    dbg!("{}", ans);
+    dbg!(ans);
 }
 pub const LOG4RS_MTP_PATH: &str = "log4rs_mtp.yaml";
 fn main() {
     log4rs::init_file(LOG4RS_MTP_PATH, Default::default()).unwrap();
     let c = check_sudoku("demo/sudoku.txt");
-    println!("{}", c);
+    dbg!(c);
     check_sort("demo/array.txt");
 }
