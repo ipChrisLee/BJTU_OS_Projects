@@ -48,7 +48,6 @@ void * give_and_get(void * pInt) {
 			release(petersonControl, idx);
 			break;
 		}
-		
 		release(petersonControl, idx);
 	} while (++cnt <= MX_CNT);
 	return NULL;
