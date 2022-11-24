@@ -12,4 +12,8 @@ add_compile_options(
 
 add_link_options(-lpthread -lm -v -pthread)
 
-add_executable(vm_manager main.cpp)
+add_subdirectory(./moe)
+include_directories(./moe)
+
+add_executable(vm_manager src/main.cpp)
+target_link_libraries(vm_manager moe)
