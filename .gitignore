@@ -1,5 +1,6 @@
 /target
 **/.idea
 **/.DS_Store
+**/cmake-build-debug
 buffer.txt
 log
