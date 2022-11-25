@@ -1,3 +1,0 @@
-[submodule "vm_manager/moe"]
-	path = vm_manager/moe
-	url = https://github.com/ipChrisLee/moe.git

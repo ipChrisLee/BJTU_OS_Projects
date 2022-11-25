@@ -15,5 +15,8 @@ add_link_options(-lpthread -lm -v -pthread)
 add_subdirectory(./moe)
 include_directories(./moe)
 
-add_executable(vm_manager src/main.cpp)
+add_executable(vm_manager src/vm_manager.cpp)
 target_link_libraries(vm_manager moe)
+
+add_executable(vm_manager_with_pg_repl src/vm_manager_with_pg_repl.cpp)
+target_link_libraries(vm_manager_with_pg_repl moe)
