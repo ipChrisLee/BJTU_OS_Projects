@@ -3,4 +3,4 @@
 **/.DS_Store
 **/cmake-build-debug
 buffer.txt
-log
+log/*
