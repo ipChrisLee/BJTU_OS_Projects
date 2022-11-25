@@ -49,7 +49,8 @@ int main(int argc, char ** argv) {
 	moe::register_std_log("log/std_log.txt");
 	read_bs_from_bin_file("data/BACKING_STORE.bin");
 	auto addressesStream = std::ifstream(addressesFilePath);
-	auto ansOutStream = std::ofstream("data/my_ans.txt");
+//	auto ansOutStream = std::ofstream("data/my_ans.txt");
+	auto ansOutStream = std::ofstream("data/my_ans_value.txt");
 	
 	auto totalAccessCnt = u32(0);
 	auto pageFaultCnt = u32(0);
@@ -59,7 +60,7 @@ int main(int argc, char ** argv) {
 		va = va & 0x0000FFFF;
 		auto pgNumber = va >> 8;
 		auto offset = va & 0xFF;
-		auto tlbIdx = pgNumber & 0b11;
+		auto tlbIdx = pgNumber % TLB_NUMBER;
 		auto frameNumber = u32(0);
 		if (tlb[tlbIdx].valid && tlb[tlbIdx].pageNumber == pgNumber) {
 			frameNumber = tlb[tlbIdx].frameNumber;
@@ -82,8 +83,9 @@ int main(int argc, char ** argv) {
 			};
 		}
 		auto pa = (frameNumber << 8) | offset;
-		ansOutStream << "Virtual address: " << va << " Physical address: " << pa
-		             << " Value: " << i32(i8(pm[pa])) << '\n';
+//		ansOutStream << "Virtual address: " << va << " Physical address: " << pa
+//		             << " Value: " << i32(i8(pm[pa])) << '\n';
+		ansOutStream << i32(i8(pm[pa])) << '\n';
 		moe_slog_info(va, pgNumber, offset, pa);
 	}
 	std::cout << "totalAccessCnt=" << totalAccessCnt << std::endl;

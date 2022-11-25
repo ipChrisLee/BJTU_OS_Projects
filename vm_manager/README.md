@@ -40,7 +40,7 @@ diff data/correct_value.txt data/my_ans_value.txt
 ```
 totalAccessCnt=1000
 pageFaultCnt=244
-tlbHitCnt=11
+tlbHitCnt=54
 ```
 
 
