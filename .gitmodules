@@ -1,3 +1,6 @@
 [submodule "vm_manager/moe"]
 	path = vm_manager/moe
 	url = https://github.com/ipChrisLee/moe.git
+[submodule "cont_memory_allocation/moe"]
+	path = cont_memory_allocation/moe
+	url = https://github.com/ipChrisLee/moe.git
